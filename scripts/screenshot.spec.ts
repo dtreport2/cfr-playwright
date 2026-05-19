@@ -1,7 +1,8 @@
+/* eslint-disable playwright/no-networkidle, playwright/no-wait-for-timeout -- The Expo/RNW app can report visible before async content has expanded. */
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const paths = [
   "/",
@@ -21,14 +22,35 @@ for (const pagePath of paths) {
     await page.goto(`https://cryptofaxreport.com${pagePath}`);
 
     await expect(page.locator("body")).toBeVisible();
-    await page.screenshot({
-      fullPage: true,
-      path: path.join(
+    await page
+      .waitForLoadState("networkidle", { timeout: 10_000 })
+      .catch(() => undefined);
+    await page.waitForTimeout(3_000);
+    await captureBodyScreenshot(
+      page,
+      path.join(
         "screenshots",
         `${urlPathForFilename(pagePath)}-${deviceForFilename(testInfo.project.name)}-${timestamp}.png`,
       ),
-    });
+    );
   });
+}
+
+async function captureBodyScreenshot(page: Page, screenshotPath: string) {
+  const viewport = page.viewportSize();
+
+  if (!viewport) {
+    await page.screenshot({ path: screenshotPath });
+    return;
+  }
+
+  const bodyHeight = await page.evaluate(() => document.body.scrollHeight);
+  await page.setViewportSize({
+    height: bodyHeight,
+    width: viewport.width,
+  });
+
+  await page.screenshot({ path: screenshotPath });
 }
 
 function urlPathForFilename(pagePath: string) {
