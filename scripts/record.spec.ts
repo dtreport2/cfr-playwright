@@ -1,4 +1,4 @@
-/* eslint-disable playwright/no-wait-for-timeout -- Fixed waits keep recorded videos usable on slow or noisy page loads. */
+/* eslint-disable playwright/no-networkidle, playwright/no-wait-for-timeout -- Recording scripts intentionally trade speed for stable video capture. */
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -19,31 +19,31 @@ const pageSettledMs = 3_000;
 const postScrollMs = 3_000;
 
 test.use({ video: "on" });
-test.setTimeout(150_000);
+test.setTimeout(60_000);
 
-test("records navigation through CryptoFaxReport pages", async ({
-  page,
-}, testInfo) => {
-  await mkdir("videos", { recursive: true });
-
-  for (const pagePath of paths) {
+for (const pagePath of paths) {
+  test(`records ${pagePath}`, async ({ page }, testInfo) => {
+    await mkdir("videos", { recursive: true });
     await page.goto(`https://cryptofaxreport.com${pagePath}`);
     await expect(page.locator("body")).toBeVisible();
+    await page
+      .waitForLoadState("networkidle", { timeout: 10_000 })
+      .catch(() => undefined);
     await page.waitForTimeout(pageSettledMs);
     await scrollToBottom(page);
     await page.waitForTimeout(postScrollMs);
-  }
 
-  const video = page.video();
-  await page.close();
-  await copyFile(
-    await video!.path(),
-    path.join(
-      "videos",
-      `${deviceForFilename(testInfo.project.name)}-${timestamp}.webm`,
-    ),
-  );
-});
+    const video = page.video();
+    await page.close();
+    await copyFile(
+      await video!.path(),
+      path.join(
+        "videos",
+        `${urlPathForFilename(pagePath)}-${deviceForFilename(testInfo.project.name)}-${timestamp}.webm`,
+      ),
+    );
+  });
+}
 
 async function scrollToBottom(page: Page) {
   await page.evaluate(async () => {
@@ -75,9 +75,11 @@ async function scrollToBottom(page: Page) {
     function findScrollTarget() {
       const candidates = [
         document.scrollingElement,
+        document.body,
         ...document.querySelectorAll("*"),
       ]
         .filter((element): element is Element => element instanceof Element)
+        .filter((element) => element.clientHeight > 0)
         .filter((element) => element.scrollHeight > element.clientHeight + 1)
         .sort((a, b) => getMaxScrollTop(b) - getMaxScrollTop(a));
 
@@ -112,6 +114,10 @@ async function scrollToBottom(page: Page) {
 
 function deviceForFilename(projectName: string) {
   return projectName.replaceAll(" ", "-");
+}
+
+function urlPathForFilename(pagePath: string) {
+  return pagePath === "/" ? "home" : pagePath.slice(1).replaceAll("/", "-");
 }
 
 function timestampForFilename() {

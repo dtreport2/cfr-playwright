@@ -10,7 +10,26 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+  screenshot:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -29,14 +48,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run lint
-        run: npm run lint
-
       - name: Run screenshot script
         run: npm run screenshot
-
-      - name: Run record script
-        run: npm run record
 
       - name: Upload screenshots
         if: ${{ !cancelled() }}
@@ -46,6 +59,36 @@ jobs:
           path: screenshots/
           retention-days: 30
 
+      - name: Upload screenshot Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run record script
+        run: npm run record
+
       - name: Upload videos
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -54,10 +97,10 @@ jobs:
           path: videos/
           retention-days: 30
 
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+      - name: Upload record Playwright report
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: record-playwright-report
           path: playwright-report/
           retention-days: 30
