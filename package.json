@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "clean": "rm -rf screenshots videos test-results playwright-report blob-report",
     "lint": "eslint .",
     "record": "playwright test record.spec.ts",
     "screenshot": "playwright test screenshot.spec.ts"

@@ -1,3 +1,4 @@
+/* eslint-disable playwright/no-wait-for-timeout -- Fixed waits keep recorded videos usable on slow or noisy page loads. */
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -16,6 +17,7 @@ const paths = [
 const timestamp = timestampForFilename();
 
 test.use({ video: "on" });
+test.setTimeout(150_000);
 
 test("records navigation through CryptoFaxReport pages", async ({
   page,
@@ -25,7 +27,9 @@ test("records navigation through CryptoFaxReport pages", async ({
   for (const pagePath of paths) {
     await page.goto(`https://cryptofaxreport.com${pagePath}`);
     await expect(page.locator("body")).toBeVisible();
+    await page.waitForTimeout(4_000);
     await scrollToBottom(page);
+    await page.waitForTimeout(5_000);
   }
 
   const video = page.video();
@@ -42,16 +46,19 @@ test("records navigation through CryptoFaxReport pages", async ({
 async function scrollToBottom(page: Page) {
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
-      const scrollDistance = 500;
-      const intervalMs = 100;
-      let scrolled = 0;
+      const scrollingElement =
+        document.scrollingElement ?? document.documentElement;
+      const scrollDistance = 80;
+      const intervalMs = 16;
 
       const interval = window.setInterval(() => {
-        const scrollHeight = document.documentElement.scrollHeight;
-        window.scrollBy(0, scrollDistance);
-        scrolled += scrollDistance;
+        const maxScrollTop = scrollingElement.scrollHeight - window.innerHeight;
+        scrollingElement.scrollTop = Math.min(
+          scrollingElement.scrollTop + scrollDistance,
+          maxScrollTop,
+        );
 
-        if (scrolled >= scrollHeight - window.innerHeight) {
+        if (scrollingElement.scrollTop >= maxScrollTop) {
           window.clearInterval(interval);
           resolve();
         }
