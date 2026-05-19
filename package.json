@@ -1,0 +1,23 @@
+{
+  "name": "cfr-playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "record": "playwright test record.spec.ts",
+    "screenshot": "playwright test screenshot.spec.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.0",
+    "eslint": "^10.4.0",
+    "eslint-plugin-playwright": "^2.10.3",
+    "prettier": "^3.8.3",
+    "rumdl": "^0.1.94",
+    "typescript-eslint": "^8.59.4"
+  }
+}
