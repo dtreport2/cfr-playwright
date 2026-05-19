@@ -13,7 +13,7 @@ Playwright checks for https://cryptofaxreport.com.
 
 - Covers `/`, `/reports/bitcoin`, `/research`, `/market-info`, `/news`, `/blog`, and `/blog/fake-tokens-and-impersonation-scams-a-practical-crypto-safety-playbook`.
 - Captures full-page screenshots on iPhone 15 Pro Max portrait and landscape projects.
-- Records videos for the same mobile projects, waiting 4 seconds after navigation, scrolling to the bottom, then waiting another 5 seconds on each covered page.
+- Records videos for the same mobile projects, waiting 3 seconds after navigation, scrolling to the bottom, then waiting another 3 seconds on each covered page.
 - Runs in Forgejo Actions on a daily cron and manual dispatch.
 
 ## Outputs

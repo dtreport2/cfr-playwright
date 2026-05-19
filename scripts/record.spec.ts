@@ -15,6 +15,8 @@ const paths = [
 ];
 
 const timestamp = timestampForFilename();
+const pageSettledMs = 3_000;
+const postScrollMs = 3_000;
 
 test.use({ video: "on" });
 test.setTimeout(150_000);
@@ -27,9 +29,9 @@ test("records navigation through CryptoFaxReport pages", async ({
   for (const pagePath of paths) {
     await page.goto(`https://cryptofaxreport.com${pagePath}`);
     await expect(page.locator("body")).toBeVisible();
-    await page.waitForTimeout(4_000);
+    await page.waitForTimeout(pageSettledMs);
     await scrollToBottom(page);
-    await page.waitForTimeout(5_000);
+    await page.waitForTimeout(postScrollMs);
   }
 
   const video = page.video();
@@ -46,24 +48,65 @@ test("records navigation through CryptoFaxReport pages", async ({
 async function scrollToBottom(page: Page) {
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
-      const scrollingElement =
-        document.scrollingElement ?? document.documentElement;
-      const scrollDistance = 80;
+      const scrollTarget = findScrollTarget();
+      const scrollDistance = 100;
       const intervalMs = 16;
+      let unchangedTicks = 0;
 
       const interval = window.setInterval(() => {
-        const maxScrollTop = scrollingElement.scrollHeight - window.innerHeight;
-        scrollingElement.scrollTop = Math.min(
-          scrollingElement.scrollTop + scrollDistance,
-          maxScrollTop,
+        const before = getScrollTop(scrollTarget);
+        const maxScrollTop = getMaxScrollTop(scrollTarget);
+        setScrollTop(
+          scrollTarget,
+          Math.min(before + scrollDistance, maxScrollTop),
         );
+        scrollTarget.dispatchEvent(new Event("scroll", { bubbles: true }));
 
-        if (scrollingElement.scrollTop >= maxScrollTop) {
+        const after = getScrollTop(scrollTarget);
+        unchangedTicks = after === before ? unchangedTicks + 1 : 0;
+
+        if (after >= maxScrollTop || unchangedTicks > 10) {
           window.clearInterval(interval);
           resolve();
         }
       }, intervalMs);
     });
+
+    function findScrollTarget() {
+      const candidates = [
+        document.scrollingElement,
+        ...document.querySelectorAll("*"),
+      ]
+        .filter((element): element is Element => element instanceof Element)
+        .filter((element) => element.scrollHeight > element.clientHeight + 1)
+        .sort((a, b) => getMaxScrollTop(b) - getMaxScrollTop(a));
+
+      return candidates[0] ?? document.documentElement;
+    }
+
+    function getScrollTop(element: Element) {
+      return element === document.scrollingElement
+        ? window.scrollY
+        : element.scrollTop;
+    }
+
+    function setScrollTop(element: Element, scrollTop: number) {
+      if (element === document.scrollingElement) {
+        window.scrollTo(0, scrollTop);
+        return;
+      }
+
+      element.scrollTop = scrollTop;
+    }
+
+    function getMaxScrollTop(element: Element) {
+      const viewportHeight =
+        element === document.scrollingElement
+          ? window.innerHeight
+          : element.clientHeight;
+
+      return Math.max(0, element.scrollHeight - viewportHeight);
+    }
   });
 }
 
