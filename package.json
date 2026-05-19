@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf screenshots videos test-results playwright-report blob-report",
     "lint": "eslint .",
-    "record": "playwright test record.spec.ts",
+    "record": "playwright test record.spec.ts --workers=100%",
     "screenshot": "playwright test screenshot.spec.ts"
   },
   "keywords": [],
