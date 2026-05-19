@@ -1,4 +1,4 @@
-/* eslint-disable playwright/no-wait-for-timeout -- Fixed waits keep recorded videos usable on slow or noisy page loads. */
+/* eslint-disable playwright/no-networkidle, playwright/no-wait-for-timeout -- Recording scripts intentionally trade speed for stable video capture. */
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -26,6 +26,9 @@ for (const pagePath of paths) {
     await mkdir("videos", { recursive: true });
     await page.goto(`https://cryptofaxreport.com${pagePath}`);
     await expect(page.locator("body")).toBeVisible();
+    await page
+      .waitForLoadState("networkidle", { timeout: 10_000 })
+      .catch(() => undefined);
     await page.waitForTimeout(pageSettledMs);
     await scrollToBottom(page);
     await page.waitForTimeout(postScrollMs);
@@ -72,9 +75,11 @@ async function scrollToBottom(page: Page) {
     function findScrollTarget() {
       const candidates = [
         document.scrollingElement,
+        document.body,
         ...document.querySelectorAll("*"),
       ]
         .filter((element): element is Element => element instanceof Element)
+        .filter((element) => element.clientHeight > 0)
         .filter((element) => element.scrollHeight > element.clientHeight + 1)
         .sort((a, b) => getMaxScrollTop(b) - getMaxScrollTop(a));
 
