@@ -1,7 +1,5 @@
 # CFR Playwright Scripts
 
-[VIDEOS](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain+is%3Asuccess) | [SCREENSHOTS](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain+is%3Asuccess)
-
 [![Playwright](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain)
 
 Playwright checks for https://cryptofaxreport.com.
