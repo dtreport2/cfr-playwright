@@ -1,5 +1,9 @@
 # CFR Playwright Scripts
 
+[VIDEOS](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain+is%3Asuccess) | [SCREENSHOTS](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain+is%3Asuccess)
+
+[![Playwright](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain)
+
 Playwright checks for https://cryptofaxreport.com.
 
 ## Scripts
@@ -14,10 +18,13 @@ Playwright checks for https://cryptofaxreport.com.
 - Covers `/`, `/reports/bitcoin`, `/research`, `/market-info`, `/news`, `/blog`, and `/blog/fake-tokens-and-impersonation-scams-a-practical-crypto-safety-playbook`.
 - Captures full-page screenshots on iPhone 15 Pro Max portrait and landscape projects.
 - Records focused videos for the same mobile projects, waiting 3 seconds after navigation, scrolling to the bottom, then waiting another 3 seconds on each covered page.
-- Runs in Forgejo Actions on a daily cron and manual dispatch.
+- Runs hourly in GitHub Actions and manually in Forgejo Actions.
 
 ## Outputs
 
 - Screenshots are written to `screenshots/URLPATH-DEVICE-ORIENTATION-TIMESTAMP.png`.
 - Videos are written to `videos/URLPATH-DEVICE-ORIENTATION-TIMESTAMP.webm`.
 - `screenshots/` and `videos/` are gitignored.
+- Latest GitHub artifacts: [screenshots and videos from recent runs](https://github.com/dtreport2/cfr-playwright/actions/workflows/playwright.yml?query=branch%3Amain+is%3Asuccess).
+
+GitHub does not provide stable native URLs for the latest artifact files themselves. Use the latest successful workflow run link above, then download the `screenshots` or `videos` artifact.
